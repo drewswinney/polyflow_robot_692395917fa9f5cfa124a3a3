@@ -1,0 +1,30 @@
+logging {
+  level = "info"
+}
+
+otelcol.receiver.prometheus "node" {
+  // Scrape the local node exporter instead of using hostmetrics.
+  config = {
+    scrape_configs = [{
+      job_name = "node-exporter",
+      static_configs = [{
+        targets = [ "127.0.0.1:9100" ],
+        labels = {
+          robot_id = env("ROBOT_ID", "polyflow-robot"),
+        },
+      }],
+    }],
+  }
+
+  output {
+    metrics = [otelcol.exporter.prometheus.host.input]
+  }
+}
+
+otelcol.exporter.prometheus "host" {
+  endpoint  = "127.0.0.1:12345"
+  namespace = "polyflow"
+  const_labels = {
+    robot_id = env("ROBOT_ID", "polyflow-robot"),
+  }
+}
